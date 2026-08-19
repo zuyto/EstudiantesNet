@@ -203,27 +203,27 @@ Kubernetes habilitado en Docker Desktop
 kubectl
 
 Verificar .NET
-```
+```text
 dotnet --version
 ```
 
 Verificar Docker
-```
+```text
 docker --version
 ```
 
 Verificar kubectl
-```
+```text
 kubectl version --client
 ```
 
 Verificar Kubernetes
-```
+```text
 kubectl get nodes
 ```
 
 Resultado obtenido:
-```
+```text
 NAME             STATUS   ROLES           VERSION
 docker-desktop   Ready    control-plane   v1.32.2
 ```
@@ -234,13 +234,13 @@ La aplicación utiliza un Dockerfile basado en una estrategia multi-stage build.
 
 Ubicación:
 
-```
+```text
 EstudiantesNet.Api/Dockerfile
 ```
 
 El proceso se divide en:
 
-```
+```text
 .NET 8 SDK
      │
      ├── Restore
@@ -256,7 +256,7 @@ El proceso se divide en:
 
 Se utilizan las imágenes oficiales:
 
-```
+```text
 mcr.microsoft.com/dotnet/sdk:8.0
 mcr.microsoft.com/dotnet/aspnet:8.0
 ```
@@ -267,19 +267,19 @@ Esto permite mantener separadas las herramientas necesarias para compilar de los
 
 El pipeline está definido en:
 
-```
+```text
 .github/workflows/ci.yml
 ```
 
 Se ejecuta automáticamente cuando existe un push o pull request sobre:
-```
+```text
 main
 develop
 ```
 
 El flujo implementado es:
 
-```
+```text
 Checkout
    │
    ▼
@@ -313,7 +313,7 @@ GHCR
 
 Workflow utilizado
 
-```
+```text
 name: CI - EstudiantesNet
 
 on:
@@ -330,7 +330,7 @@ on:
 
 El workflow utiliza:
 
-```
+```text
 permissions:
   contents: read
   packages: write
@@ -342,7 +342,7 @@ Esto permite que GitHub Actions pueda leer el repositorio y publicar paquetes en
 
 El pipeline ejecuta las pruebas de toda la solución:
 
-```
+```text
 dotnet test EstudiantesNet.sln
 ```
 
@@ -360,7 +360,7 @@ Resultado
 
 Resultado global
 
-```
+```text
 106 pruebas ejecutadas
 106 pruebas correctas
 0 pruebas fallidas
@@ -371,28 +371,28 @@ Esto demuestra que los cambios pueden ser validados automáticamente antes de ge
 # 📊 Cobertura de código
 
 La cobertura se genera utilizando:
-```
+```text
 Coverlet
 ```
 
 mediante:
-```
+```text
 --collect:"XPlat Code Coverage"
 ```
 
 Los resultados se generan en:
-```
+```text
 TestResults/
 ```
 
 Posteriormente se utiliza:
-```
+```text
 ReportGenerator
 ```
 
 para convertir los resultados en un reporte HTML.
 
-```
+```text
 coverage.cobertura.xml
           │
           ▼
@@ -406,7 +406,7 @@ coverage.cobertura.xml
 ```
 
 El pipeline publica dos tipos de artefactos:
-```
+```text
 coverage-report-xml
 coverage-report-html
 
@@ -421,22 +421,22 @@ El reporte HTML puede descargarse desde la sección Artifacts de la ejecución c
 # 📦 GitHub Container Registry
 
 Las imágenes Docker son publicadas automáticamente en:
-```
+```text
 GitHub Container Registry (GHCR)
 ```
 El registro utilizado es:
-```
+```text
 ghcr.io
 ```
 La imagen se genera utilizando dos etiquetas:
-```
+```text
 ghcr.io/zuyto/estudiantesnet-api:${GITHUB_SHA}
 
 
 ghcr.io/zuyto/estudiantesnet-api:latest
 ```
 La etiqueta basada en el SHA permite mantener trazabilidad entre la imagen y el commit que la generó.
-```
+```text
 Git Commit
     │
     ▼
@@ -454,7 +454,7 @@ La imagen se mantiene como privada.
 # ☸️ Kubernetes
 
 Para validar el despliegue se utilizó Kubernetes mediante Docker Desktop.
-```
+```text
 Docker Desktop
       │
       ▼
@@ -467,7 +467,7 @@ Docker Desktop
       └── Service
 ```
 Los manifiestos se encuentran en:
-```
+```text
 k8s/
 ├── deployment.yaml
 └── service.yaml
@@ -478,15 +478,15 @@ k8s/
 Debido a que la imagen de GHCR es privada, Kubernetes requiere credenciales para realizar el pull.
 
 Se creó el secreto:
-```
+```text
 ghcr-secret
 ```
 Tipo:
-```
+```text
 kubernetes.io/dockerconfigjson
 ```
 El Deployment utiliza:
-```
+```text
 imagePullSecrets:
   - name: ghcr-secret
 ```
@@ -497,22 +497,22 @@ De esta forma, las credenciales no se almacenan directamente dentro del manifies
 # 🚀 Despliegue
 
 El Deployment se aplica mediante:
-```
+```text
 kubectl apply -f k8s/deployment.yaml
 ```
 Posteriormente se aplica el Service:
-```
+```text
 kubectl apply -f k8s/service.yaml
 Verificar Pods
 kubectl get pods
 ```
 Resultado obtenido:
-```
+```text
 NAME                                 READY   STATUS    RESTARTS
 estudiantesnet-api-fb8b8c45c-4jpcj   1/1     Running   0
 ```
 El Pod se encuentra:
-```
+```text
 READY     1/1
 STATUS    Running
 RESTARTS  0
@@ -521,40 +521,40 @@ RESTARTS  0
 # 🔌 Service Kubernetes
 
 Verificar:
-```
+```text
 kubectl get services
 ```
 Resultado:
-```
+```text
 NAME                 TYPE        CLUSTER-IP      EXTERNAL-IP   PORT(S)
 estudiantesnet-api   NodePort    10.98.114.238   <none>        8080:31017/TCP
 ```
 El servicio utiliza:
-```
+```text
 NodePort: 31017
 ```
 Por lo tanto, la aplicación queda disponible localmente mediante:
-```
+```text
 http://localhost:31017
 ```
 
 # ❤️ Health Check
 
 La aplicación dispone del endpoint:
-```
+```text
 /api/health
 ```
 URL:
-```
+```text
 http://localhost:31017/api/health
 ```
 Resultado:
-```
+```text
 Healthy
 ```
 
 El flujo de validación es:
-```
+```text
 Browser
    │
    ▼
@@ -581,11 +581,11 @@ Healthy
 La API dispone de documentación interactiva mediante Swagger/OpenAPI.
 
 URL:
-```
+```text
 http://localhost:31017/swagger/index.html
 ```
 Swagger permite:
-```
+```text
 Visualizar los endpoints.
 Consultar parámetros.
 Ejecutar operaciones.
@@ -616,7 +616,7 @@ La solución aplica principios fundamentales de DevOps:
 Automatización
 
 GitHub Actions elimina tareas repetitivas:
-```
+```text
 Restore
    ↓
 Build
@@ -634,7 +634,7 @@ Esto disminuye la intervención manual y los errores asociados.
 Feedback rápido
 
 Ante un cambio:
-```
+```text
 Git Push
    ↓
 GitHub Actions
@@ -668,7 +668,7 @@ Docker permite empaquetar la aplicación junto con sus dependencias y ejecutarla
 # 📈 Evolución hacia CD
 
 Actualmente se cuenta con:
-```
+```text
 GitHub
    ↓
 GitHub Actions
@@ -686,14 +686,14 @@ GHCR
 Kubernetes
 ```
 El despliegue Kubernetes fue validado mediante:
-```
+```text
 k8s/deployment.yaml
 k8s/service.yaml
 ```
 Para completar un proceso de Continuous Delivery / Continuous Deployment, el siguiente paso sería incorporar Kubernetes directamente al pipeline.
 
 La arquitectura futura sería:
-```
+```text
 Developer
     │
     ▼
@@ -756,11 +756,11 @@ La implementación permitió establecer un proceso de integración continua para
 GitHub Actions automatiza la restauración de dependencias, compilación, ejecución de pruebas, generación de cobertura y construcción de imágenes Docker.
 
 Se ejecutaron:
-```
+```text
 106 pruebas automatizadas, con 106 resultados correctos y 0 fallos.
 ```
 La cobertura obtenida fue del:
-```
+```text
 53 %
 ```
 El reporte de cobertura se genera automáticamente y queda disponible como artefacto de GitHub Actions.
@@ -768,13 +768,13 @@ El reporte de cobertura se genera automáticamente y queda disponible como artef
 Docker permitió empaquetar la aplicación de forma reproducible y GitHub Container Registry proporciona un repositorio privado para las imágenes generadas.
 
 Posteriormente, la imagen fue validada en Kubernetes mediante Docker Desktop, obteniendo un Pod en estado:
-```
+```text
 1/1 Running
 ```
 sin reinicios.
 
 Finalmente, la aplicación respondió correctamente mediante:
-```
+```text
 /api/health → Healthy
 ```
 y Swagger quedó disponible para la exploración de la API.
