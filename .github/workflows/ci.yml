@@ -39,6 +39,11 @@ jobs:
           --verbosity normal
           --collect:"XPlat Code Coverage"
           --results-directory ./TestResults
+      - name: Publicar reporte de cobertura
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-report
+          path: ./TestResults/**/coverage.cobertura.xml
 
       - name: Construir imagen Docker
         run: docker build --file EstudiantesNet.Api/Dockerfile --tag estudiantesnet-api:${{ github.sha }} .
