@@ -116,4 +116,4 @@ SELECT m.*
 
 
 Select * from [EstudianteMateria];
-delete [EstudianteMateria] where Id in (7,8,9);
+delete [EstudianteMateria] where Id in (31,32,33);

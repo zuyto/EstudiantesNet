@@ -42,7 +42,7 @@ namespace EstudiantesNet.Api.Controllers
 
 
 		/// <summary>
-		/// Endpoint encargado de Procesar Promise Engine Contingencia
+		/// 
 		/// </summary>
 		/// <returns></returns>
 		/// <response code="200">OK. Devuelve el objeto solicitado</response>

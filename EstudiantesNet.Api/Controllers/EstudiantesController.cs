@@ -43,11 +43,12 @@ namespace EstudiantesNet.Api.Controllers
 
 
 		/// <summary>
-		/// 
+		/// Endpoint encargado de crear un estudiante
 		/// </summary>
+		/// <remarks>Esto es un POST</remarks>
 		/// <param name="request"></param>
 		/// <returns></returns>
-		/// /// <response code="200">OK. Devuelve el objeto solicitado</response>
+		/// <response code="200">OK. Devuelve el objeto solicitado</response>
 		/// <response code="409">Error durante el proceso</response>
 		/// <response code="500">Error interno en el API</response>
 		/// <response code="404">Error controlado cuando el Request es invalido</response>
@@ -100,7 +101,7 @@ namespace EstudiantesNet.Api.Controllers
 		/// </summary>
 		/// <param name="request"></param>
 		/// <returns></returns>
-		/// /// <response code="200">OK. Devuelve el objeto solicitado</response>
+		/// <response code="200">OK. Devuelve el objeto solicitado</response>
 		/// <response code="409">Error durante el proceso</response>
 		/// <response code="500">Error interno en el API</response>
 		/// <response code="404">Error controlado cuando el Request es invalido</response>
@@ -160,7 +161,7 @@ namespace EstudiantesNet.Api.Controllers
 		/// <response code="500">Error interno en el API</response>
 		/// <response code="404">Error controlado cuando el Request es invalido</response>
 		/// <response code="400">Error controlado por el flitro del request</response>
-		[Route("GetAllEstudiantes")]
+		[Route("ConsultarEstudiantes")]
 		[HttpGet]
 		[ProducesResponseType(typeof(ApiResponse<DtoJsonResponseEstudiantes>), StatusCodes.Status200OK)]
 		[ProducesResponseType(typeof(ApiResponse<DtoJsonResponseEstudiantes>), StatusCodes.Status409Conflict)]
@@ -211,7 +212,7 @@ namespace EstudiantesNet.Api.Controllers
 		/// <response code="500">Error interno en el API</response>
 		/// <response code="404">Error controlado cuando el Request es invalido</response>
 		/// <response code="400">Error controlado por el flitro del request</response>
-		[Route("GetCompaneros")]
+		[Route("ConsultarCompaneros")]
 		[HttpPost]
 		[ProducesResponseType(typeof(ApiResponse<DtoJsonResponseCompaneros>), StatusCodes.Status200OK)]
 		[ProducesResponseType(typeof(ApiResponse<DtoJsonResponseCompaneros>), StatusCodes.Status409Conflict)]
@@ -260,7 +261,7 @@ namespace EstudiantesNet.Api.Controllers
 		/// <response code="500">Error interno en el API</response>
 		/// <response code="404">Error controlado cuando el Request es invalido</response>
 		/// <response code="400">Error controlado por el flitro del request</response>
-		[Route("EstudiantesPorId")]
+		[Route("ConsultarEstudiantesPorId")]
 		[HttpPost]
 		[ProducesResponseType(typeof(ApiResponse<DtoJsonResponseEstudiandesId>), StatusCodes.Status200OK)]
 		[ProducesResponseType(typeof(ApiResponse<DtoJsonResponseEstudiandesId>), StatusCodes.Status409Conflict)]

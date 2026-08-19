@@ -18,11 +18,12 @@
         </member>
         <member name="M:EstudiantesNet.Api.Controllers.EstudiantesController.Registrar(EstudiantesNet.Application.Common.Models.DTOs.DtoJsonRequest)">
             <summary>
-            
+            Endpoint encargado de crear un estudiante
             </summary>
+            <remarks>Esto es un POST</remarks>
             <param name="request"></param>
             <returns></returns>
-            /// <response code="200">OK. Devuelve el objeto solicitado</response>
+            <response code="200">OK. Devuelve el objeto solicitado</response>
             <response code="409">Error durante el proceso</response>
             <response code="500">Error interno en el API</response>
             <response code="404">Error controlado cuando el Request es invalido</response>
@@ -34,7 +35,7 @@
             </summary>
             <param name="request"></param>
             <returns></returns>
-            /// <response code="200">OK. Devuelve el objeto solicitado</response>
+            <response code="200">OK. Devuelve el objeto solicitado</response>
             <response code="409">Error durante el proceso</response>
             <response code="500">Error interno en el API</response>
             <response code="404">Error controlado cuando el Request es invalido</response>
@@ -89,7 +90,7 @@
         </member>
         <member name="M:EstudiantesNet.Api.Controllers.MateriasController.GetMaterias">
             <summary>
-            Endpoint encargado de Procesar Promise Engine Contingencia
+            
             </summary>
             <returns></returns>
             <response code="200">OK. Devuelve el objeto solicitado</response>
@@ -112,7 +113,7 @@
         </member>
         <member name="M:EstudiantesNet.Api.Controllers.ProfesoresController.GetProfesorPorMateria(System.Int32)">
             <summary>
-            Endpoint encargado de Procesar Promise Engine Contingencia
+            
             </summary>
             <returns></returns>
             <response code="200">OK. Devuelve el objeto solicitado</response>
