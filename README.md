@@ -798,3 +798,18 @@ Registry: GitHub Container Registry
 Orquestación: Kubernetes
 
 Autor: Mauro Ferney Martinez Quiroga 
+
+
+#  Anexos
+
+![](Docs/images/Screenshot_1.png) 
+![](Docs/images/Screenshot_2.png) 
+![](Docs/images/Screenshot_3.png) 
+![](Docs/images/Screenshot_4.png) 
+![](Docs/images/Screenshot_5.png) 
+![](Docs/images/Screenshot_6.png) 
+![](Docs/images/Screenshot_7.png) 
+![](Docs/images/Screenshot_8.png) 
+![](Docs/images/Screenshot_9.png) 
+![](Docs/images/Screenshot_10.png) 
+![](Docs/images/Screenshot_11.png) 
