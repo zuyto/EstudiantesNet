@@ -1,0 +1,44 @@
+name: CI - EstudiantesNet
+
+on:
+  push:
+    branches:
+      - main
+      - develop
+  pull_request:
+    branches:
+      - main
+      - develop
+
+jobs:
+  build-test:
+
+    runs-on: ubuntu-latest
+
+    steps:
+
+      - name: Checkout del código
+        uses: actions/checkout@v4
+
+      - name: Configurar .NET 8
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+
+      - name: Restaurar dependencias
+        run: dotnet restore EstudiantesNet.sln
+
+      - name: Compilar solución
+        run: dotnet build EstudiantesNet.sln --configuration Release --no-restore
+
+      - name: Ejecutar pruebas y cobertura
+        run: >
+          dotnet test EstudiantesNet.sln
+          --configuration Release
+          --no-build
+          --verbosity normal
+          --collect:"XPlat Code Coverage"
+          --results-directory ./TestResults
+
+      - name: Construir imagen Docker
+        run: docker build --tag estudiantesnet-api:${{ github.sha }} .
