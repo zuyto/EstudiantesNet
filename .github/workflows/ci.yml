@@ -41,4 +41,4 @@ jobs:
           --results-directory ./TestResults
 
       - name: Construir imagen Docker
-        run: docker build --tag estudiantesnet-api:${{ github.sha }} .
+        run: docker build --file EstudiantesNet.Api/Dockerfile --tag estudiantesnet-api:${{ github.sha }} .
