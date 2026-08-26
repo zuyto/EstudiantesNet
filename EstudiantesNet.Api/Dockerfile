@@ -1,20 +1,9 @@
 FROM mcr.microsoft.com/dotnet/aspnet:8.0-alpine AS base
-
-USER root
-
-RUN apk update && \
-    apk upgrade --no-cache
-
-USER $APP_UID
-
 WORKDIR /app
 EXPOSE 8080
-EXPOSE 8081
 
 FROM mcr.microsoft.com/dotnet/sdk:8.0-alpine AS build
-
 ARG BUILD_CONFIGURATION=Release
-
 WORKDIR /src
 
 COPY ["EstudiantesNet.Api/EstudiantesNet.Api.csproj", "EstudiantesNet.Api/"]
@@ -34,7 +23,6 @@ RUN dotnet build "./EstudiantesNet.Api.csproj" \
     -o /app/build
 
 FROM build AS publish
-
 ARG BUILD_CONFIGURATION=Release
 
 RUN dotnet publish "./EstudiantesNet.Api.csproj" \
@@ -43,8 +31,9 @@ RUN dotnet publish "./EstudiantesNet.Api.csproj" \
     /p:UseAppHost=false
 
 FROM base AS final
-
 WORKDIR /app
+
+ENV ASPNETCORE_HTTP_PORTS=8080
 
 COPY --from=publish /app/publish .
 
