@@ -2,9 +2,8 @@ FROM mcr.microsoft.com/dotnet/aspnet:8.0-alpine AS base
 
 USER root
 
-RUN apk add --no-cache \
-    icu-libs \
-    tzdata
+RUN apk add --no-cache icu-libs tzdata \
+    && find /usr/lib -name "libicu*.so*" -print
 
 ENV DOTNET_SYSTEM_GLOBALIZATION_INVARIANT=false
 
