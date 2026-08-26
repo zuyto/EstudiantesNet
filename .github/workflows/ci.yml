@@ -147,8 +147,9 @@ jobs:
         env:
           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
         run: |
-          snyk container test ${{ env.IMAGE }}:${{ github.sha }} \
-            --severity-threshold=high
+          snyk container test \
+            ${{ env.IMAGE }}:${{ github.sha }} \
+            --file=EstudiantesNet.Api/Dockerfile
 
       # ========================================
       # PUSH ARTIFACT REGISTRY
