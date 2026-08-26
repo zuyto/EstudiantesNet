@@ -5,13 +5,10 @@
 // </copyright>
 
 using System.Diagnostics.CodeAnalysis;
-using System.Reflection;
 
 using EstudiantesNet.Application.Common.Interfaces.Services;
 using EstudiantesNet.Application.Common.Interfaces.Services.Http;
-using EstudiantesNet.Application.Common.Interfaces.Services.Ping;
 using EstudiantesNet.Application.Common.Interfaces.Services.Serilog;
-using EstudiantesNet.Application.Common.Profiles;
 using EstudiantesNet.Application.Services;
 using EstudiantesNet.Application.Services.Http;
 using EstudiantesNet.Application.Services.Serilog;
@@ -31,8 +28,6 @@ namespace EstudiantesNet.Application
 			_ = services.AddFluentValidationAutoValidation()
 				.AddFluentValidationClientsideAdapters();
 
-			_ = services.AddAutoMapper(
-				Assembly.GetAssembly(typeof(MappingProfile)));
 
 			services.AddTransient<ISerilogImplements, SerilogImplements>();
 			services.AddTransient<IGenericServiceAgent, GenericServiceAgent>();
