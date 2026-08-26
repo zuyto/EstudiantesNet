@@ -1,4 +1,4 @@
-name: CI - EstudiantesNet
+name: CI/CD - EstudiantesNet
 
 on:
   push:
@@ -12,7 +12,14 @@ on:
 
 permissions:
   contents: read
-  packages: write
+  id-token: write
+
+env:
+  PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
+  REGION: us-central1
+  REPOSITORY: estudiantesnet
+  IMAGE_NAME: estudiantesnet-api
+  IMAGE: us-central1-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/estudiantesnet/estudiantesnet-api
 
 jobs:
   build-test:
@@ -21,8 +28,16 @@ jobs:
 
     steps:
 
+      # ========================================
+      # CHECKOUT
+      # ========================================
+
       - name: Checkout del código
         uses: actions/checkout@v4
+
+      # ========================================
+      # .NET 8
+      # ========================================
 
       - name: Configurar .NET 8
         uses: actions/setup-dotnet@v4
@@ -34,6 +49,10 @@ jobs:
 
       - name: Compilar solución
         run: dotnet build EstudiantesNet.sln --configuration Release --no-restore
+
+      # ========================================
+      # TESTS + COVERAGE
+      # ========================================
 
       - name: Ejecutar pruebas y cobertura
         run: >
@@ -66,22 +85,86 @@ jobs:
           name: coverage-report-html
           path: ./CoverageReport
 
-      - name: Iniciar sesión en GitHub Container Registry
+      # ========================================
+      # SNYK - OPEN SOURCE
+      # ========================================
+
+      - name: Instalar Snyk CLI
+        run: |
+          curl --compressed https://static.snyk.io/cli/latest/snyk-linux -o snyk
+          chmod +x snyk
+          sudo mv snyk /usr/local/bin/snyk
+
+      - name: Analizar dependencias con Snyk
+        env:
+          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+        run: |
+          snyk test --all-projects
+
+      # ========================================
+      # GOOGLE CLOUD
+      # ========================================
+
+      - name: Autenticar con Google Cloud
+        id: auth
+        uses: google-github-actions/auth@v2
+        with:
+          workload_identity_provider: ${{ secrets.WIF_PROVIDER }}
+          service_account: ${{ secrets.WIF_SERVICE_ACCOUNT }}
+          token_format: access_token
+
+      - name: Configurar gcloud
+        uses: google-github-actions/setup-gcloud@v2
+
+      # ========================================
+      # ARTIFACT REGISTRY
+      # ========================================
+
+      - name: Iniciar sesión en Artifact Registry
         uses: docker/login-action@v3
         with:
-          registry: ghcr.io
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
+          registry: us-central1-docker.pkg.dev
+          username: oauth2accesstoken
+          password: ${{ steps.auth.outputs.access_token }}
+
+      # ========================================
+      # DOCKER
+      # ========================================
 
       - name: Construir imagen Docker
         run: |
           docker build \
             --file EstudiantesNet.Api/Dockerfile \
-            --tag ghcr.io/${{ github.repository_owner }}/estudiantesnet-api:${{ github.sha }} \
-            --tag ghcr.io/${{ github.repository_owner }}/estudiantesnet-api:latest \
+            --tag ${{ env.IMAGE }}:${{ github.sha }} \
+            --tag ${{ env.IMAGE }}:latest \
             .
 
-      - name: Publicar imagen en GHCR
+      # ========================================
+      # SNYK - CONTAINER
+      # ========================================
+
+      - name: Analizar imagen Docker con Snyk
+        env:
+          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
         run: |
-          docker push ghcr.io/${{ github.repository_owner }}/estudiantesnet-api:${{ github.sha }}
-          docker push ghcr.io/${{ github.repository_owner }}/estudiantesnet-api:latest
+          snyk container test ${{ env.IMAGE }}:${{ github.sha }}
+
+      # ========================================
+      # PUSH ARTIFACT REGISTRY
+      # ========================================
+
+      - name: Publicar imagen en Artifact Registry
+        run: |
+          docker push ${{ env.IMAGE }}:${{ github.sha }}
+          docker push ${{ env.IMAGE }}:latest
+
+      # ========================================
+      # CLOUD RUN
+      # ========================================
+
+      - name: Desplegar en Cloud Run
+        uses: google-github-actions/deploy-cloudrun@v2
+        with:
+          service: estudiantesnet-api
+          region: ${{ env.REGION }}
+          image: ${{ env.IMAGE }}:${{ github.sha }}
