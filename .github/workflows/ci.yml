@@ -140,6 +140,29 @@ jobs:
             .
 
       # ========================================
+      # VERIFICAR ICU EN LA IMAGEN
+      # ========================================
+
+      - name: Verificar ICU en imagen Docker
+        run: |
+          docker run --rm \
+            --entrypoint /bin/sh \
+            ${{ env.IMAGE }}:${{ github.sha }} \
+            -c '
+              echo "--- ALPINE ---"
+              cat /etc/alpine-release
+
+              echo "--- ICU PACKAGE ---"
+              apk info -v icu-libs
+
+              echo "--- ICU FILES ---"
+              find /usr -name "libicu*.so*" 2>/dev/null
+
+              echo "--- DOTNET ---"
+              dotnet --info
+            '
+
+      # ========================================
       # SNYK - CONTAINER
       # ========================================
 
