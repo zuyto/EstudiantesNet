@@ -1,9 +1,15 @@
 FROM mcr.microsoft.com/dotnet/aspnet:8.0-alpine AS base
 
-RUN apk update && \
-    apk upgrade --no-cache
+USER root
+
+RUN apk add --no-cache \
+    icu-libs \
+    tzdata
+
+ENV DOTNET_SYSTEM_GLOBALIZATION_INVARIANT=false
 
 USER $APP_UID
+
 WORKDIR /app
 
 EXPOSE 8080
