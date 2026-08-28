@@ -1,815 +1,724 @@
-# 🚀 EstudiantesNet — Pipeline CI/CD con GitHub Actions, Docker, GHCR y Kubernetes
+# EstudiantesNet
 
-[![CI - EstudiantesNet](https://github.com/zuyto/EstudiantesNet/actions/workflows/ci.yml/badge.svg)](https://github.com/zuyto/EstudiantesNet/actions/workflows/ci.yml)
+## 🚀 Descripción
 
-Aplicación REST desarrollada con **.NET 8 / ASP.NET Core**, utilizada como proyecto base para la implementación de prácticas DevOps mediante integración continua, pruebas automatizadas, cobertura de código, contenedores Docker, GitHub Container Registry y Kubernetes.
+### EstudiantesNet 
+es una API REST desarrollada con .NET 8, implementada bajo principios de arquitectura limpia y buenas prácticas de desarrollo de software.
 
-El proyecto implementa un pipeline automatizado mediante **GitHub Actions**, encargado de restaurar dependencias, compilar la solución, ejecutar pruebas, generar reportes de cobertura, construir una imagen Docker y publicarla en un registro privado de GitHub Container Registry (GHCR).
+El proyecto fue utilizado como base para implementar un ecosistema DevOps que integra automatización, pruebas, seguridad, contenerización, despliegue continuo y monitoreo.
 
-Posteriormente, la imagen es utilizada para validar el despliegue de la aplicación en un entorno Kubernetes ejecutado mediante Docker Desktop.
+La solución incorpora:
 
----
+* GitHub Actions para la automatización del proceso de integración y despliegue.
+* Pruebas unitarias y cobertura de código para validar la calidad de la solución.
+* Snyk para el análisis de vulnerabilidades en dependencias y en la imagen Docker.
+* Docker para la contenerización de la aplicación.
+* Google Artifact Registry para el almacenamiento de imágenes Docker.
+* Google Cloud Run para el despliegue de la API.
+* Prometheus para la recolección de métricas.
+* Grafana para la visualización de métricas y configuración de alertas.
+* cAdvisor para la obtención de métricas de los contenedores.
 
-## 📋 Tabla de contenido
+El objetivo principal es demostrar la implementación práctica de un flujo DevOps que permita integrar desarrollo, pruebas, seguridad, despliegue y monitoreo dentro de un ciclo automatizado y reproducible.
 
-- [🎯 Objetivo](#-objetivo)
-- [🏗️ Arquitectura](#️-arquitectura)
-- [🛠️ Tecnologías utilizadas](#️-tecnologías-utilizadas)
-- [📁 Estructura del proyecto](#-estructura-del-proyecto)
-- [⚙️ Prerrequisitos](#️-prerrequisitos)
-- [🐳 Docker](#-docker)
-- [🔄 Pipeline CI](#-pipeline-ci)
-- [🧪 Pruebas automatizadas](#-pruebas-automatizadas)
-- [📊 Cobertura de código](#-cobertura-de-código)
-- [📦 GitHub Container Registry](#-github-container-registry)
-- [☸️ Kubernetes](#️-kubernetes)
-- [🚀 Despliegue](#-despliegue)
-- [❤️ Health Check](#️-health-check)
-- [📚 Swagger](#-swagger)
-- [🔐 Seguridad y buenas prácticas](#-seguridad-y-buenas-prácticas)
-- [🔁 Flujo DevOps](#-flujo-devops)
-- [📈 Evolución hacia CD](#-evolución-hacia-cd)
-- [📊 Resultados](#-resultados)
-- [🎓 Conclusiones](#-conclusiones)
+<img src="Docs/images/Descripcion.png" alt="Arquitectura del proyecto" width="900"/>
 
----
 
-# 🎯 Objetivo
+## 🏗️ Arquitectura
 
-El objetivo de esta implementación es establecer un proceso básico de **Integración Continua (CI)** y preparar la aplicación para un flujo de **Continuous Delivery / Continuous Deployment (CD)**.
+La solución EstudiantesNet implementa un flujo DevOps que integra desarrollo, integración continua, seguridad, contenerización, despliegue y monitoreo.
 
-La solución busca automatizar las principales actividades posteriores a un cambio en el código:
+### 🔄 Flujo principal
 
-```text
-Developer
-    │
-    ▼
-Git Push / Pull Request
-    │
-    ▼
-GitHub
-    │
-    ▼
-GitHub Actions
-    │
-    ├── Restore
-    ├── Build
-    ├── Test
-    ├── Coverage
-    ├── Docker Build
-    └── Docker Push
-             │
-             ▼
-           GHCR
-             │
-             ▼
-        Kubernetes
-```
-# 🏗️ Arquitectura
 
-La arquitectura implementada integra control de versiones, integración continua, construcción de contenedores y orquestación mediante Kubernetes.
-
-```text
-
-                         ┌─────────────────────┐
-                         │      Developer      │
-                         └──────────┬──────────┘
-                                    │
-                              Git Push / PR
-                                    │
-                                    ▼
-                         ┌─────────────────────┐
-                         │       GitHub        │
-                         │     Repository      │
-                         └──────────┬──────────┘
-                                    │
-                                    ▼
-                     ┌───────────────────────────┐
-                     │      GitHub Actions       │
-                     │                           │
-                     │  ✓ Checkout               │
-                     │  ✓ .NET 8                 │
-                     │  ✓ Restore                │
-                     │  ✓ Build                  │
-                     │  ✓ Unit Tests             │
-                     │  ✓ Coverage               │
-                     │  ✓ Docker Build            │
-                     │  ✓ Docker Push             │
-                     └─────────────┬─────────────┘
-                                   │
-                                   ▼
-                     ┌───────────────────────────┐
-                     │           GHCR            │
-                     │ GitHub Container Registry  │
-                     │       Private Image        │
-                     └─────────────┬─────────────┘
-                                   │
-                              Pull Image
-                                   │
-                                   ▼
-              ┌────────────────────────────────────────┐
-              │           Docker Desktop               │
-              │              Kubernetes                │
-              │                                        │
-              │   ┌────────────────────────────────┐   │
-              │   │ Deployment                     │   │
-              │   │                                │   │
-              │   │ EstudiantesNet API             │   │
-              │   │                                │   │
-              │   │ Pod: 1/1 Running               │   │
-              │   └───────────────┬────────────────┘   │
-              │                   │                    │
-              │            Kubernetes Service          │
-              │                   │                    │
-              └───────────────────┼────────────────────┘
-                                  │
-                             NodePort 31017
-                                  │
-                                  ▼
-                           ┌──────────────┐
-                           │   Browser    │
-                           └──────┬───────┘
-                                  │
-                    ┌─────────────┴─────────────┐
-                    ▼                           ▼
-             /api/health                    /swagger
-                    │                           │
-                    ▼                           ▼
-                Healthy                     Swagger UI
-
-```
-
-# 🛠️ Tecnologías utilizadas
-
-| Componente           | Tecnología                 | Propósito                      |
-| -------------------- | -------------------------- | ------------------------------ |
-| Lenguaje             | C#                         | Desarrollo de la aplicación    |
-| Framework            | .NET 8 / ASP.NET Core      | Implementación de la API       |
-| Arquitectura         | Separación por capas       | Organización y mantenibilidad  |
-| Control de versiones | Git / GitHub               | Gestión del código fuente      |
-| CI                   | GitHub Actions             | Automatización del pipeline    |
-| Testing              | xUnit                      | Pruebas automatizadas          |
-| Mocking              | Moq                        | Simulación de dependencias     |
-| Coverage             | Coverlet                   | Medición de cobertura          |
-| Reportes             | ReportGenerator            | Generación del reporte HTML    |
-| Contenedores         | Docker                     | Empaquetado de la aplicación   |
-| Registry             | GitHub Container Registry  | Almacenamiento de imágenes     |
-| Orquestación         | Kubernetes                 | Administración de contenedores |
-| Entorno Kubernetes   | Docker Desktop             | Clúster local                  |
-| API Documentation    | Swagger / OpenAPI          | Documentación interactiva      |
-| Health Check         | ASP.NET Core Health Checks | Verificación del estado        |
-
-# 📁 Estructura del proyecto
-
-```text
-EstudiantesNet/
-│
-├── EstudiantesNet.Api/
-├── EstudiantesNet.Application/
-├── EstudiantesNet.Domain/
-├── EstudiantesNet.Infrastructure/
-├── EstudiantesNet.Logger/
-│
-├── EstudiantesNet.UnitTests.Api/
-├── EstudiantesNet.UnitTests.Application/
-├── EstudiantesNet.UnitTests.Domain/
-├── EstudiantesNet.UnitTests.Infrastructure/
-├── EstudiantesNet.UnitTests.Logger/
-│
-├── .github/
-│   └── workflows/
-│       └── ci.yml
-│
-├── k8s/
-│   ├── deployment.yaml
-│   └── service.yaml
-│
-├── EstudiantesNet.sln
-├── Dockerfile
-└── README.md
-```
-El Dockerfile utilizado para construir la API se encuentra actualmente en EstudiantesNet.Api/Dockerfile.
-
-# ⚙️ Prerrequisitos
-
-Para ejecutar el proyecto se requiere:
-
-Git
-Cuenta de GitHub
-.NET 8 SDK
-Visual Studio 2022
-Docker Desktop
-Kubernetes habilitado en Docker Desktop
-kubectl
-
-Verificar .NET
-```text
-dotnet --version
-```
-
-Verificar Docker
-```text
-docker --version
-```
-
-Verificar kubectl
-```text
-kubectl version --client
-```
-
-Verificar Kubernetes
-```text
-kubectl get nodes
-```
-
-Resultado obtenido:
-```text
-NAME             STATUS   ROLES           VERSION
-docker-desktop   Ready    control-plane   v1.32.2
-```
-
-# 🐳 Docker
-
-La aplicación utiliza un Dockerfile basado en una estrategia multi-stage build.
-
-Ubicación:
-
-```text
-EstudiantesNet.Api/Dockerfile
-```
-
-El proceso se divide en:
-
-```text
-.NET 8 SDK
-     │
-     ├── Restore
-     ├── Build
-     └── Publish
-             │
-             ▼
-     ASP.NET Core Runtime
-             │
-             ▼
-      EstudiantesNet.Api
-```
-
-Se utilizan las imágenes oficiales:
-
-```text
-mcr.microsoft.com/dotnet/sdk:8.0
-mcr.microsoft.com/dotnet/aspnet:8.0
-```
-
-Esto permite mantener separadas las herramientas necesarias para compilar de los componentes necesarios para ejecutar la aplicación.
-
-# 🔄 Pipeline CI
-
-El pipeline está definido en:
-
-```text
-.github/workflows/ci.yml
-```
-
-Se ejecuta automáticamente cuando existe un push o pull request sobre:
-```text
-main
-develop
-```
-
-El flujo implementado es:
-
-```text
-Checkout
-   │
-   ▼
-Setup .NET 8
-   │
-   ▼
-Restore
-   │
-   ▼
-Build
-   │
-   ▼
-Unit Tests
-   │
-   ▼
-Coverage
-   │
-   ▼
-HTML Report
-   │
-   ▼
-Docker Build
-   │
-   ▼
-Docker Push
-   │
-   ▼
-GHCR
-```
-
-
-Workflow utilizado
-
-```text
-name: CI - EstudiantesNet
-
-on:
-  push:
-    branches:
-      - main
-      - develop
-
-  pull_request:
-    branches:
-      - main
-      - develop
-```
-
-El workflow utiliza:
-
-```text
-permissions:
-  contents: read
-  packages: write
-```
-
-Esto permite que GitHub Actions pueda leer el repositorio y publicar paquetes en GHCR.
-
-# 🧪 Pruebas automatizadas
-
-El pipeline ejecuta las pruebas de toda la solución:
-
-```text
-dotnet test EstudiantesNet.sln
-```
-
-Resultado
-
-| Proyecto                                | Pruebas | Resultado         |
-| --------------------------------------- | ------: | ----------------- |
-| EstudiantesNet.UnitTests.Api            |      18 | ✅                 |
-| EstudiantesNet.UnitTests.Application    |      35 | ✅                 |
-| EstudiantesNet.UnitTests.Domain         |       9 | ✅                 |
-| EstudiantesNet.UnitTests.Infrastructure |      27 | ✅                 |
-| EstudiantesNet.UnitTests.Logger         |      17 | ✅                 |
-| **TOTAL**                               | **106** | **106 correctas** |
-
-
-Resultado global
-
-```text
-106 pruebas ejecutadas
-106 pruebas correctas
-0 pruebas fallidas
-```
-
-Esto demuestra que los cambios pueden ser validados automáticamente antes de generar y publicar la imagen Docker.
-
-# 📊 Cobertura de código
-
-La cobertura se genera utilizando:
-```text
-Coverlet
-```
-
-mediante:
-```text
---collect:"XPlat Code Coverage"
-```
-
-Los resultados se generan en:
-```text
-TestResults/
-```
-
-Posteriormente se utiliza:
-```text
-ReportGenerator
-```
-
-para convertir los resultados en un reporte HTML.
-
-```text
-coverage.cobertura.xml
-          │
-          ▼
-    ReportGenerator
-          │
-          ▼
-     CoverageReport
-          │
-          ▼
-       HTML
-```
-
-El pipeline publica dos tipos de artefactos:
-```text
-coverage-report-xml
-coverage-report-html
-
-```
-
-## Resultado obtenido
-
-# 📊 Cobertura global: 53 %
-
-El reporte HTML puede descargarse desde la sección Artifacts de la ejecución correspondiente en GitHub Actions.
-
-# 📦 GitHub Container Registry
-
-Las imágenes Docker son publicadas automáticamente en:
-```text
-GitHub Container Registry (GHCR)
-```
-El registro utilizado es:
-```text
-ghcr.io
-```
-La imagen se genera utilizando dos etiquetas:
-```text
-ghcr.io/zuyto/estudiantesnet-api:${GITHUB_SHA}
-
-
-ghcr.io/zuyto/estudiantesnet-api:latest
-```
-La etiqueta basada en el SHA permite mantener trazabilidad entre la imagen y el commit que la generó.
-```text
-Git Commit
-    │
-    ▼
-Git SHA
-    │
-    ▼
-Docker Image
-    │
-    ▼
-GHCR
-```
-La imagen se mantiene como privada.
-
-
-# ☸️ Kubernetes
-
-Para validar el despliegue se utilizó Kubernetes mediante Docker Desktop.
-```text
-Docker Desktop
+👨‍💻 Desarrollo
       │
       ▼
- Kubernetes
+🐙 GitHub
       │
-      ├── Deployment
+      ▼
+⚙️ GitHub Actions
       │
-      ├── Pod
+      ├── 🧪 Build & Tests
+      ├── 📊 Cobertura
+      ├── 🔐 Snyk - Dependencias
       │
-      └── Service
-```
-Los manifiestos se encuentran en:
-```text
-k8s/
-├── deployment.yaml
-└── service.yaml
-```
+      ▼
+🐳 Docker
+      │
+      ├── 🔐 Snyk - Imagen
+      │
+      ▼
+☁️ Google Artifact Registry
+      │
+      ▼
+🚀 Google Cloud Run
+      │
+      ▼
+🌐 EstudiantesNet API
 
-# 🔐 Registro privado en Kubernetes
 
-Debido a que la imagen de GHCR es privada, Kubernetes requiere credenciales para realizar el pull.
+### 📊 Componentes de la solución
 
-Se creó el secreto:
-```text
-ghcr-secret
-```
-Tipo:
-```text
-kubernetes.io/dockerconfigjson
-```
-El Deployment utiliza:
-```text
-imagePullSecrets:
-  - name: ghcr-secret
-```
-De esta forma, las credenciales no se almacenan directamente dentro del manifiesto.
+Componente	Responsabilidad
 
-### ⚠️ Nunca deben almacenarse tokens reales en el repositorio.
+🐙 GitHub	Almacenamiento del código fuente y control de versiones
 
-# 🚀 Despliegue
+⚙️ GitHub Actions	Automatización del proceso CI/CD
 
-El Deployment se aplica mediante:
-```text
-kubectl apply -f k8s/deployment.yaml
-```
-Posteriormente se aplica el Service:
-```text
-kubectl apply -f k8s/service.yaml
-Verificar Pods
-kubectl get pods
-```
-Resultado obtenido:
-```text
-NAME                                 READY   STATUS    RESTARTS
-estudiantesnet-api-fb8b8c45c-4jpcj   1/1     Running   0
-```
-El Pod se encuentra:
-```text
-READY     1/1
-STATUS    Running
-RESTARTS  0
-```
+🧪 .NET 8 + Tests	Compilación, validación y pruebas automatizadas
 
-# 🔌 Service Kubernetes
+🔐 Snyk	Análisis de vulnerabilidades en dependencias e imagen Docker
 
-Verificar:
-```text
-kubectl get services
-```
-Resultado:
-```text
-NAME                 TYPE        CLUSTER-IP      EXTERNAL-IP   PORT(S)
-estudiantesnet-api   NodePort    10.98.114.238   <none>        8080:31017/TCP
-```
-El servicio utiliza:
-```text
-NodePort: 31017
-```
-Por lo tanto, la aplicación queda disponible localmente mediante:
-```text
-http://localhost:31017
-```
+🐳 Docker	Contenerización de la aplicación
 
-# ❤️ Health Check
+📦 Artifact Registry	Almacenamiento de imágenes Docker
 
-La aplicación dispone del endpoint:
-```text
-/api/health
-```
-URL:
-```text
-http://localhost:31017/api/health
-```
-Resultado:
-```text
-Healthy
-```
+☁️ Cloud Run	Despliegue y ejecución de la API
 
-El flujo de validación es:
-```text
-Browser
+📈 Prometheus	Recolección de métricas
+
+📊 Grafana	Visualización de métricas y alertas
+
+🖥️ cAdvisor	Recolección de métricas de contenedores
+
+🔁 Integración CI/CD
+
+El proceso automatizado se ejecuta a partir de cambios realizados sobre el repositorio:
+````
+Código → Build → Tests → Snyk → Docker → Snyk → Artifact Registry → Cloud Run
+````
+De esta manera, una modificación realizada en el código puede recorrer automáticamente las etapas de validación, análisis de seguridad, construcción de la imagen y despliegue.
+
+### 📊 Observabilidad
+
+La solución incorpora un entorno de monitoreo basado en Prometheus + Grafana + cAdvisor.
+
+````
+EstudiantesNet API ──────┐
+                         │
+                         ▼
+                    📈 Prometheus
+                         │
+                         ▼
+                    📊 Grafana
+                         │
+                  ┌──────┴──────┐
+                  ▼             ▼
+              Dashboard      Alertas
+
+cAdvisor ────────────────► Prometheus
+````
+Durante el laboratorio, este entorno permitió visualizar métricas de la API y de los contenedores, incluyendo uso de CPU, memoria, solicitudes HTTP, estado de los servicios y reinicios de contenedores.
+
+### ☁️ Entorno de despliegue
+
+El despliegue de la aplicación se realiza actualmente en Google Cloud, utilizando:
+
+Artifact Registry → Cloud Run
+
+Adicionalmente, Kubernetes sobre Docker Desktop fue utilizado como entorno local para validar el despliegue y la ejecución de la aplicación en contenedores.
+
+### 🖼️ Diagrama de arquitectura
+
+<img src="Docs/images/Diagrama_Arquitectura.png"  width="1000"/>
+
+
+
+## 🔄 Pipeline CI/CD
+
+El proyecto utiliza GitHub Actions para automatizar el ciclo de integración y despliegue de la aplicación.
+
+Cada cambio integrado al repositorio activa un flujo que valida el código, ejecuta las pruebas, realiza análisis de seguridad, construye y analiza la imagen Docker, la publica en Google Artifact Registry y finalmente despliega la aplicación en Google Cloud Run.
+
+### 🚦 Flujo automatizado
+````
+🐙 GitHub
    │
+   │ Push / Pull Request
    ▼
-NodePort :31017
+⚙️ GitHub Actions
    │
-   ▼
-Kubernetes Service
+   ├── 🔧 Configuración de .NET 8
    │
-   ▼
-Pod :8080
+   ├── 📦 Restaurar dependencias
    │
-   ▼
-ASP.NET Core
+   ├── 🏗️ Compilar solución
    │
-   ▼
-/api/health
+   ├── 🧪 Ejecutar pruebas
    │
-   ▼
-Healthy
+   ├── 📊 Generar cobertura
+   │
+   ├── 🔐 Snyk - Análisis de dependencias
+   │
+   ├── 🐳 Construir imagen Docker
+   │
+   ├── 🔎 Snyk - Análisis de imagen
+   │
+   ├── 📦 Publicar en Artifact Registry
+   │
+   └── 🚀 Desplegar en Cloud Run
+````
+
+### 🔵 Continuous Integration — CI
+
+La etapa de integración continua permite validar automáticamente cada cambio antes de considerarlo apto para despliegue.
+
+| Etapa           | Propósito                                        |
+| --------------- | ------------------------------------------------ |
+| 🔧 **Restore**  | Restaurar las dependencias del proyecto          |
+| 🏗️ **Build**   | Compilar la solución .NET 8                      |
+| 🧪 **Tests**    | Ejecutar las pruebas automatizadas               |
+| 📊 **Coverage** | Generar y publicar el reporte de cobertura       |
+| 🔐 **Snyk**     | Identificar vulnerabilidades en las dependencias |
+
+
+
+### 🟢 Continuous Delivery — CD
+
+Una vez superadas las validaciones, el pipeline continúa automáticamente con el proceso de entrega:
+
+E| Etapa                    | Propósito                                        |
+| ------------------------ | ------------------------------------------------ |
+| 🐳 **Docker Build**      | Construir la imagen de la API                    |
+| 🔎 **Snyk Image**        | Analizar vulnerabilidades presentes en la imagen |
+| 📦 **Artifact Registry** | Publicar la imagen Docker en Google Cloud        |
+| 🚀 **Cloud Run**         | Desplegar la nueva versión de la aplicación      |
+
+### ☁️ Resultado
+
+El flujo completo queda automatizado de extremo a extremo:
+````
+Código
+  ↓
+Validación
+  ↓
+Pruebas
+  ↓
+Seguridad
+  ↓
+Docker
+  ↓
+Artifact Registry
+  ↓
+Cloud Run
+````
+
+Esto permite reducir la intervención manual, detectar problemas antes del despliegue y mantener un proceso de entrega repetible, trazable y automatizado.
+
+### ✅ Última ejecución
+
+La última ejecución validada del pipeline completó correctamente todas las etapas:
+
+* ✅ Compilación
+* ✅ Pruebas y cobertura
+* ✅ Snyk — dependencias
+* ✅ Construcción de imagen Docker
+* ✅ Snyk — imagen Docker
+* ✅ Publicación en Artifact Registry
+* ✅ Despliegue en Cloud Run
+
+Resultado: succeeded en aproximadamente 3 minutos y 16 segundos.
+
+<img src="Docs/images/CI_CD.png"  width="1500"/>
+
+
+
+## 🔐 Seguridad
+
+La seguridad se integra directamente dentro del pipeline CI/CD mediante **Snyk**, permitiendo identificar vulnerabilidades antes de que una nueva versión de la aplicación sea desplegada.
+
+El análisis se realiza en **dos niveles**:
+
+```text
+📦 Dependencias del proyecto
+          │
+          ▼
+     🔐 Snyk Open Source
+          │
+          ▼
+   Vulnerabilidades en
+   paquetes y dependencias
+```
+y posteriormente:
+
+```text
+🐳 Imagen Docker
+       │
+       ▼
+   🔐 Snyk Container
+       │
+       ▼
+Vulnerabilidades de la
+imagen y componentes base
 ```
 
-# 📚 Swagger
+### 🛡️ Análisis de dependencias
 
-La API dispone de documentación interactiva mediante Swagger/OpenAPI.
+Durante la etapa de integración continua, Snyk analiza las dependencias utilizadas por la solución .NET.
 
-URL:
+Esta validación permite detectar componentes con vulnerabilidades conocidas y proporciona información para evaluar acciones de actualización o corrección.
+
+### 🐳 Análisis de la imagen Docker
+
+Después de construir la imagen de la aplicación, el pipeline ejecuta un segundo análisis utilizando Snyk.
+
+Esta etapa permite identificar vulnerabilidades asociadas tanto a los componentes de la aplicación como a las librerías presentes en la imagen base utilizada por Docker.
+
+El análisis se ejecuta antes de publicar la imagen en Google Artifact Registry, incorporando un control adicional de seguridad al proceso de entrega.
+
+### 🔄 Seguridad integrada al CI/CD
+
+El proceso queda integrado de la siguiente manera:
+
 ```text
-http://localhost:31017/swagger/index.html
-```
-Swagger permite:
-```text
-Visualizar los endpoints.
-Consultar parámetros.
-Ejecutar operaciones.
-Revisar respuestas.
-Explorar la API desplegada.
-```
-La validación de Swagger confirma que la aplicación está funcionando correctamente dentro del contenedor y no únicamente que el Pod se encuentra en estado Running.
-
-# 🔐 Seguridad y buenas prácticas
-
-| # | Situación                        | Riesgo                          | Mejora                                |
-| - | -------------------------------- | ------------------------------- | ------------------------------------- |
-| 1 | GHCR privado                     | Acceso no autorizado            | Mantener el registry privado          |
-| 2 | Token de GHCR                    | Exposición accidental           | Utilizar GitHub Secrets               |
-| 3 | Kubernetes local                 | No representa producción        | Migrar a EKS, AKS o GKE               |
-| 4 | Cobertura 53 %                   | Código sin suficiente cobertura | Incrementar cobertura progresivamente |
-| 5 | Sin análisis de vulnerabilidades | Posibles CVE                    | Integrar Trivy / GitHub Security      |
-| 6 | CD Kubernetes manual             | Requiere intervención           | Automatizar deployment                |
-| 7 | Swagger habilitado               | Exposición de información       | Restringir en producción              |
-| 8 | Sin aprobación de producción     | Riesgo de despliegues           | Utilizar ambientes protegidos         |
-
-
-
-# 🔁 Flujo DevOps
-
-La solución aplica principios fundamentales de DevOps:
-
-Automatización
-
-GitHub Actions elimina tareas repetitivas:
-```text
-Restore
-   ↓
-Build
-   ↓
-Test
-   ↓
-Coverage
-   ↓
+Código
+  │
+  ▼
+Build + Tests
+  │
+  ▼
+🔐 Snyk
+Dependencias
+  │
+  ▼
 Docker Build
-   ↓
-Docker Push
+  │
+  ▼
+🔐 Snyk
+Imagen Docker
+  │
+  ▼
+Artifact Registry
+  │
+  ▼
+Cloud Run
 ```
-Esto disminuye la intervención manual y los errores asociados.
+De esta forma, la seguridad no se considera una actividad independiente al final del desarrollo, sino un control integrado dentro del ciclo de entrega continua.
 
-Feedback rápido
+### ✅ Evidencia
 
-Ante un cambio:
+La ejecución del pipeline muestra correctamente las etapas:
+
+* ✅ Analizar dependencias con Snyk
+* ✅ Analizar imagen Docker con Snyk
+* ✅ Publicar imagen en Artifact Registry
+* ✅ Desplegar en Cloud Run
+
+<img src="Docs/images/dependencias_synk.png"  width="800"/>
+
+<img src="Docs/images/docker_synk.png"  width="800"/>
+
+
+## ☁️ Despliegue en Google Cloud
+
+La aplicación **EstudiantesNet API** se encuentra desplegada en **Google Cloud Platform (GCP)** utilizando **Google Artifact Registry** para almacenar la imagen Docker y **Google Cloud Run** como plataforma de ejecución.
+
+### 📦 Artifact Registry
+
+La imagen Docker generada durante el pipeline CI/CD se publica automáticamente en un repositorio de **Artifact Registry**.
+
 ```text
-Git Push
-   ↓
-GitHub Actions
-   ↓
-Build
-   ↓
-Tests
-   ↓
-Coverage
+🐳 Docker Image
+      │
+      │ Push
+      ▼
+📦 Google Artifact Registry
+      │
+      │ Pull
+      ▼
+☁️ Google Cloud Run
 ```
-Si una prueba falla:
 
-# ❌ Pipeline failed
+El repositorio utilizado es:
 
-El desarrollador recibe retroalimentación inmediata.
+| Configuración  | Valor            |
+| -------------- | ---------------- |
+| 📦 Repositorio | `estudiantesnet` |
+| 🐳 Formato     | Docker           |
+| 🌎 Región      | `us-central1`    |
+| ☁️ Proyecto    | `estudiantesnet` |
 
-Colaboración
 
-GitHub facilita:
+### 🚀 Cloud Run
 
-* Control de versiones.
-* Pull Requests.
-* Revisión de código.
-* Historial de cambios.
-* Automatización.
-* Trazabilidad.
-* Consistencia
+Google Cloud Run se utiliza para ejecutar la aplicación como un servicio administrado de contenedores.
 
-Docker permite empaquetar la aplicación junto con sus dependencias y ejecutarla de manera consistente en diferentes ambientes.
+El pipeline obtiene la imagen publicada en Artifact Registry y realiza automáticamente el despliegue de la nueva versión.
 
-# 📈 Evolución hacia CD
+| Configuración | Valor                                |
+| ------------- | ------------------------------------ |
+| 🚀 Servicio   | `estudiantesnet-api`                 |
+| 🌎 Región     | `us-central1`                        |
+| 📦 Imagen     | Google Artifact Registry             |
+| 🐳 Runtime    | Contenedor Docker                    |
+| 🔄 Despliegue | Automatizado mediante GitHub Actions |
 
-Actualmente se cuenta con:
+
+### 🔄 Flujo de despliegue
+
 ```text
-GitHub
-   ↓
-GitHub Actions
-   ↓
-Build
-   ↓
-Tests
-   ↓
-Coverage
-   ↓
-Docker Build
-   ↓
-GHCR
-   ↓
-Kubernetes
+🐙 GitHub
+   │
+   ▼
+⚙️ GitHub Actions
+   │
+   ├── 🧪 Tests
+   ├── 🔐 Snyk
+   ├── 🐳 Docker Build
+   │
+   ▼
+📦 Artifact Registry
+   │
+   ▼
+🚀 Cloud Run
+   │
+   ▼
+🌐 EstudiantesNet API
 ```
-El despliegue Kubernetes fue validado mediante:
+
+De esta manera, el proceso de despliegue no requiere copiar manualmente imágenes ni ejecutar comandos de actualización en Cloud Run. La publicación de la imagen y el despliegue de la aplicación forman parte del pipeline automatizado.
+
+### ✅ Estado del despliegue
+
+La última ejecución del pipeline completó correctamente la etapa:
+
 ```text
-k8s/deployment.yaml
-k8s/service.yaml
+Desplegar en Cloud Run
 ```
-Para completar un proceso de Continuous Delivery / Continuous Deployment, el siguiente paso sería incorporar Kubernetes directamente al pipeline.
+El servicio `estudiantesnet-api` se encuentra desplegado en la región `us-central1`.
 
-La arquitectura futura sería:
+
+<img src="Docs/images/ArtifactRegistry.png"  width="2000"/>
+
+
+<img src="Docs/images/cloud_run.png"  width="1500"/>
+
+
+## 📊 Monitoreo
+
+La solución incorpora un entorno de observabilidad basado en **Prometheus**, **Grafana** y **cAdvisor**, permitiendo recopilar, consultar y visualizar métricas de la aplicación y de los contenedores.
+
+### 🔎 Arquitectura de monitoreo
+
 ```text
-Developer
-    │
-    ▼
-GitHub
-    │
-    ▼
-GitHub Actions
-    │
-    ├── Build
-    ├── Test
-    ├── Coverage
-    ├── Security Scan
-    └── Docker Build
-            │
-            ▼
-           GHCR
-            │
-            ▼
-      Kubernetes Cloud
-            │
-            ▼
-       Rolling Update
-            │
-            ▼
-        Health Check
+🌐 EstudiantesNet API
+        │
+        │ /metrics
+        ▼
+📈 Prometheus
+        │
+        │ PromQL
+        ▼
+📊 Grafana
+        │
+        ├── 📈 Dashboards
+        └── 🚨 Alertas
 ```
-Algunas alternativas para producción:
-
-* Amazon EKS
-* Azure Kubernetes Service (AKS)
-* Google Kubernetes Engine (GKE)
-
-# 📊 Resultados
-| Validación            | Resultado          |
-| --------------------- | ------------------ |
-| .NET 8                | ✅                  |
-| Compilación           | ✅                  |
-| Pruebas automatizadas | ✅                  |
-| Pruebas correctas     | **106/106**        |
-| Pruebas fallidas      | **0**              |
-| Cobertura             | **53 %**           |
-| Reporte HTML          | ✅                  |
-| Docker Build          | ✅                  |
-| Docker Push           | ✅                  |
-| GHCR                  | ✅                  |
-| Registry privado      | ✅                  |
-| Kubernetes            | ✅                  |
-| Deployment            | ✅                  |
-| Pod                   | **1/1 Running**    |
-| Restarts              | **0**              |
-| Service               | **NodePort 31017** |
-| Health Check          | **Healthy**        |
-| Swagger               | ✅                  |
-
-
-# 🎓 Conclusiones
-
-La implementación permitió establecer un proceso de integración continua para una aplicación ASP.NET Core desarrollada con .NET 8.
-
-GitHub Actions automatiza la restauración de dependencias, compilación, ejecución de pruebas, generación de cobertura y construcción de imágenes Docker.
-
-Se ejecutaron:
 ```text
-106 pruebas automatizadas, con 106 resultados correctos y 0 fallos.
+🐳 Contenedores
+        │
+        ▼
+🖥️ cAdvisor
+        │
+        ▼
+📈 Prometheus
 ```
-La cobertura obtenida fue del:
+
+### Prometheus
+
+Prometheus es utilizado como sistema de recopilación y almacenamiento de métricas.
+
+La API expone un endpoint:
 ```text
-53 %
+/metrics
 ```
-El reporte de cobertura se genera automáticamente y queda disponible como artefacto de GitHub Actions.
+que proporciona métricas relacionadas con el comportamiento de la aplicación.
 
-Docker permitió empaquetar la aplicación de forma reproducible y GitHub Container Registry proporciona un repositorio privado para las imágenes generadas.
+que proporciona métricas relacionadas con el comportamiento de la aplicación.
 
-Posteriormente, la imagen fue validada en Kubernetes mediante Docker Desktop, obteniendo un Pod en estado:
+Prometheus consulta periódicamente este endpoint y almacena las series temporales para posteriormente ser consultadas mediante PromQL.
+
+La configuración utiliza un intervalo de scraping de:
 ```text
-1/1 Running
+5 segundos
 ```
-sin reinicios.
 
-Finalmente, la aplicación respondió correctamente mediante:
+### Grafana
+
+**Grafana** se utiliza como herramienta de visualización y análisis de las métricas recolectadas por Prometheus.
+
+Se configuró Prometheus como fuente de datos y se construyeron visualizaciones para observar el comportamiento de la aplicación y los contenedores.
+
+Entre las métricas utilizadas se encuentran:
+
+| Métrica                                  | Información                           |
+| ---------------------------------------- | ------------------------------------- |
+| 🟢 `up`                                  | Estado de disponibilidad del servicio |
+| 🌐 `http_request_duration_seconds_count` | Cantidad de solicitudes HTTP          |
+| 💾 `dotnet_total_memory_bytes`           | Memoria utilizada por .NET            |
+| ♻️ `dotnet_collection_count_total`       | Colecciones del Garbage Collector     |
+| 🧠 `container_cpu_usage_seconds_total`   | Uso de CPU del contenedor             |
+| 💾 `container_memory_working_set_bytes`  | Memoria utilizada por el contenedor   |
+| 🚀 `container_start_time_seconds`        | Momento de inicio del contenedor      |
+
+
+### cAdvisor
+
+**cAdvisor** permite recopilar métricas relacionadas con los contenedores que se encuentran ejecutándose en el entorno local.
+
+Estas métricas son enviadas a Prometheus y posteriormente utilizadas por Grafana para construir visualizaciones sobre el comportamiento de los contenedores.
+
+Se utilizaron métricas relacionadas con:
+
+* 🧠 Uso de CPU
+* 💾 Uso de memoria
+* 🚀 Tiempo de inicio de contenedores
+* ♻️ Reinicios
+* 📦 Información de los contenedores
+* ☸️ Información de los Pods de Kubernetes
+
+### ☸️ Monitoreo del despliegue local
+
+Durante las pruebas locales, la API se ejecutó sobre Kubernetes en Docker Desktop.
+
+cAdvisor permitió obtener información del contenedor correspondiente a:
 ```text
-/api/health → Healthy
+estudiantesnet-api
 ```
-y Swagger quedó disponible para la exploración de la API.
+y Prometheus permitió consultar estas métricas desde Grafana.
 
-Desde la perspectiva DevOps, la solución demuestra cómo la automatización, las pruebas, la generación de artefactos, la contenerización y la orquestación pueden integrarse dentro del ciclo de vida del desarrollo de software.
+### 🚨 Alertas
 
-Como evolución futura, el proceso puede convertirse en un CD completo incorporando un clúster Kubernetes administrado en la nube, análisis de vulnerabilidades, gestión centralizada de secretos, ambientes protegidos y despliegues automatizados mediante Rolling Updates.
+Se configuró una regla de alerta en Grafana:
+```text
+EstudiantesNet - High CPU Usage
+```
 
-# 👨‍💻 Proyecto
+Esta regla permite identificar situaciones en las que el consumo de CPU de la aplicación supera el umbral definido.
 
-EstudiantesNet
+La alerta se encuentra integrada dentro del sistema de observabilidad y puede ser consultada desde:
 
-Tecnología principal: .NET 8 / ASP.NET Core
+**Grafana** → **Alerting** → **Alert rules**
 
-CI/CD: GitHub Actions
+Nota: el contact point de correo fue configurado, pero el entorno local de Grafana no tiene un servidor SMTP configurado. Por esta razón, la prueba de envío de correo no se ejecutó. La regla de alerta permanece configurada y puede ser evaluada por Grafana.
 
-Containerización: Docker
+### 🔄 Flujo de observabilidad
+```text
+📦 Aplicación / Contenedores
+          │
+          ▼
+     📈 Métricas
+          │
+          ▼
+      Prometheus
+          │
+          ▼
+       Grafana
+       /      \
+      ▼        ▼
+ 📊 Dashboard 🚨 Alertas
+```
 
-Registry: GitHub Container Registry
 
-Orquestación: Kubernetes
+## 📈 Métricas monitoreadas
 
-Autor: Mauro Ferney Martinez Quiroga 
+#### **Prometheus_up**
+
+<img src="Docs/images/prometheus_up.png"  width="1500"/>
+
+#### **Prometheus_query**
+
+<img src="Docs/images/promeyheus_query.png"  width="1500"/>
+
+#### **Grafana_monitoring**
+
+<img src="Docs/images/grafana_monitoring.png"  width="1200"/>
+
+#### **RunTime_Memory**
+
+<img src="Docs/images/RunTime_Memory.png"  width="1200"/>
+
+#### **Errors_Status_Duration**
+
+<img src="Docs/images/Errors_Status_Duration.png"  width="1200"/>
 
 
-#  Anexos
 
-![](Docs/images/Screenshot_1.png) 
-![](Docs/images/Screenshot_2.png) 
-![](Docs/images/Screenshot_3.png) 
-![](Docs/images/Screenshot_4.png) 
-![](Docs/images/Screenshot_5.png) 
-![](Docs/images/Screenshot_6.png) 
-![](Docs/images/Screenshot_7.png) 
-![](Docs/images/Screenshot_8.png) 
-![](Docs/images/Screenshot_9.png) 
-![](Docs/images/Screenshot_10.png) 
-![](Docs/images/Screenshot_11.png) 
+#### **cAdvisor**
+
+<img src="Docs/images/cAdvisor.png"  width="900"/>
+
+
+
+
+## 🚨 Alertas
+
+El sistema de monitoreo incorpora una regla de alerta configurada en Grafana, permitiendo identificar de forma automática comportamientos que puedan afectar el rendimiento de la aplicación.
+
+### ⚠️ Alerta configurada
+EstudiantesNet - High CPU Usage
+
+La alerta evalúa el consumo de CPU del contenedor asociado a la aplicación y permite detectar situaciones en las que el uso de recursos supera el umbral definido.
+
+```text
+🖥️ EstudiantesNet API │ ▼ 📈 Métricas de CPU │ ▼ Prometheus │ ▼ Grafana │ ▼ 🚨 High CPU Usage
+```
+La alerta permite detectar un consumo elevado de CPU en el contenedor asociado a la aplicación.
+
+### 🔄 Flujo de evaluación
+
+
+```text
+🖥️ EstudiantesNet API
+          │
+          ▼
+    📈 Métricas de CPU
+          │
+          ▼
+      Prometheus
+          │
+          ▼
+       Grafana
+          │
+          ▼
+🚨 High CPU Usage
+```
+
+Grafana consulta periódicamente las métricas almacenadas en Prometheus y evalúa la condición definida en la regla de alerta.
+
+Cuando la métrica supera el umbral configurado, la regla cambia de estado y permite identificar oportunamente un posible problema de rendimiento.
+
+| Componente | Función |
+|---|---|
+| 📈 **Prometheus** | Recolecta y almacena las métricas |
+| 📊 **Grafana** | Evalúa la condición configurada |
+| 🚨 **Alert Rule** | Detecta el consumo elevado de CPU |
+| 📬 **Contact Point** | Define el canal para recibir la notificación |
+
+
+Grafana consulta periódicamente las métricas almacenadas en Prometheus y evalúa la condición definida en la regla de alerta.
+
+Cuando el consumo de CPU supera el umbral configurado, la regla puede cambiar de estado y generar una notificación.
+
+### 📬 Notificaciones
+
+Se configuró un Contact Point para el envío de notificaciones mediante correo electrónico.
+
+El entorno local de Grafana no tiene configurado un servidor SMTP, por lo que la prueba de envío de correo no pudo ejecutarse correctamente.
+
+La regla de alerta permanece configurada y disponible dentro de Grafana.
+```text
+💡 En un entorno productivo, esta configuración puede integrarse con un proveedor SMTP u otros canales de notificación para informar automáticamente a los responsables de la operación.
+```
+
+### 🎯 Beneficio
+
+La incorporación de alertas permite evolucionar desde un monitoreo reactivo hacia un enfoque más proactivo, facilitando la identificación temprana de problemas relacionados con el consumo de recursos.
+
+#### **grafana_alerting**
+
+<img src="Docs/images/grafana_alerting.png"  width="2000"/>
+<img src="Docs/images/alertascorreo.png"  width="1200"/>
+
+
+## 🐳 Ejecución local
+
+
+Durante el laboratorio se utilizó un entorno local para validar la aplicación, el despliegue en contenedores y las herramientas de monitoreo.
+
+### 🧩 Componentes utilizados
+
+- 🟦 **.NET 8** — ejecución de la API.
+- 🐳 **Docker Desktop** — ejecución de contenedores.
+- ☸️ **Kubernetes** — despliegue local de la API.
+- 📈 **Prometheus** — recolección de métricas.
+- 📊 **Grafana** — visualización y alertas.
+- 🖥️ **cAdvisor** — métricas de los contenedores.
+
+### 🚀 Ejecución de la API
+
+La API puede ejecutarse directamente desde **Visual Studio** utilizando el perfil de ejecución configurado para el proyecto.
+
+Durante las pruebas locales, la API quedó disponible mediante HTTPS en:
+
+```text
+https://localhost:5025
+```
+
+El endpoint utilizado por Prometheus para obtener las métricas es:
+
+```text
+https://localhost:5025/metrics
+```
+
+La disponibilidad del endpoint fue validada obteniendo una respuesta:
+
+```text
+HTTP/1.1 200 OK
+```
+
+### 📈 Ejecución del entorno de monitoreo
+
+Las herramientas de monitoreo se ejecutan mediante Docker Compose.
+
+El archivo utilizado se encuentra en:
+
+```text
+monitoring/
+├── docker-compose.yml
+└── prometheus.yml
+```
+
+Para iniciar el entorno:
+
+```text
+cd monitoring
+
+docker compose up -d
+```
+
+Para verificar los contenedores:
+```text
+docker ps
+```
+
+| Servicio                  | URL                      | Propósito                             |
+| ------------------------- | ------------------------ | ------------------------------------- |
+| 🚀 **EstudiantesNet API** | `https://localhost:5025` | API REST                              |
+| 📈 **Prometheus**         | `http://localhost:9090`  | Consulta y almacenamiento de métricas |
+| 📊 **Grafana**            | `http://localhost:3000`  | Dashboards y alertas                  |
+| 🖥️ **cAdvisor**          | `http://localhost:8081`  | Métricas de contenedores              |
+
+
+### 🔎 Validación de métricas
+
+El endpoint de métricas de la API fue validado localmente mediante:
+```text
+Invoke-WebRequest https://localhost:5025/metrics
+```
+La respuesta contiene métricas de ASP.NET Core y .NET, entre ellas:
+```text
+http_request_duration_seconds
+dotnet_collection_count_total
+dotnet_total_memory_bytes
+```
+Estas métricas son posteriormente consultadas por Prometheus y utilizadas por Grafana para las visualizaciones del dashboard.
+
+<img src="Docs/images/API_ok.png"  width="500"/>
+<img src="Docs/images/API_ok2.png"  width="500"/>
+<img src="Docs/images/docker_ps.png"  width="1000"/>
+
+
+
+
+
+## ☸️ Kubernetes
+
+## 🧪 Pruebas y cobertura
+
+## 📁 Estructura del proyecto
+
+## 📸 Evidencias
+
+## 🎓 Reflexión DevOps
