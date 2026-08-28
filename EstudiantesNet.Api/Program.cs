@@ -14,6 +14,8 @@ using EstudiantesNet.Api.DependecyInjectionGlobal;
 using EstudiantesNet.Api.Middleware;
 using EstudiantesNet.Application.Common.Struct;
 
+using Prometheus;
+
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -25,6 +27,9 @@ var AssemblyName = Assembly.GetExecutingAssembly().GetName().Name;
 builder.AddPresentation();
 
 var app = builder.Build();
+
+app.UseHttpMetrics();
+
 
 app.UseSwagger(options =>
 		options.RouteTemplate = "swagger/{documentName}/swagger.json")
@@ -66,6 +71,8 @@ app.UseRequestResponseLogging();
 app.UseMiddleware<NullBodyRequestMiddleware>();
 
 app.MapHealthChecks("/api/health");
+
+app.MapMetrics();
 
 await app.RunAsync();
 

@@ -1,0 +1,16 @@
+global:
+  scrape_interval: 5s
+
+scrape_configs:
+
+  - job_name: "estudiantesnet-api"
+    metrics_path: "/metrics"
+    static_configs:
+      - targets:
+          - "host.docker.internal:5025"
+
+  - job_name: "cadvisor"
+    metrics_path: "/metrics"
+    static_configs:
+      - targets:
+          - "cadvisor:8080"
