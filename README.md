@@ -715,10 +715,423 @@ Estas métricas son posteriormente consultadas por Prometheus y utilizadas por G
 
 ## ☸️ Kubernetes
 
+Como parte de la validación de la solución, **EstudiantesNet API** fue desplegada localmente utilizando **Kubernetes sobre Docker Desktop**.
+
+Este entorno permitió validar el funcionamiento de la aplicación dentro de un contenedor administrado por Kubernetes, así como la exposición del servicio para realizar pruebas.
+
+### 🏗️ Arquitectura 
+
+```text
+☸️ Kubernetes - Docker Desktop
+          │
+          ▼
+    📦 Deployment
+          │
+          ▼
+    🟢 Pod
+          │
+          ▼
+🚀 estudiantesnet-api
+          │
+          ▼
+    🌐 Kubernetes Service
+          │
+          ▼
+    🔗 NodePort
+```
+
+### 📦 Deployment
+
+La aplicación se ejecuta mediante un recurso Deployment, encargado de administrar los Pods de la API.
+
+El Deployment utilizado corresponde a:
+```
+estudiantesnet-api
+```
+
+Durante la validación se comprobó que el Pod de la aplicación se encontraba en estado:
+```
+Running
+```
+
+
+### 🟢 Pod
+
+El Pod generado por Kubernetes corresponde a la instancia de ejecución de la API.
+
+Ejemplo del Pod utilizado durante las pruebas:
+```
+estudiantesnet-api-fb8b8c45c-4jpcj
+```
+El estado del Pod fue validado mediante:
+```
+kubectl get pods
+```
+Resultado esperado:
+```
+NAME                                READY   STATUS    RESTARTS
+estudiantesnet-api-fb8b8c45c-4jpcj  1/1     Running   ...
+```
+
+### 🌐 Service
+
+Para permitir el acceso a la aplicación se configuró un Service de tipo NodePort.
+
+El servicio utilizado es:
+```
+estudiantesnet-api
+```
+Durante las pruebas se obtuvo una exposición mediante:
+```
+8080:31017/TCP
+```
+Esto permitió acceder a la aplicación mediante el puerto publicado por Kubernetes.
+
+La configuración fue validada mediante:
+```
+kubectl get services
+```
+
+### 🔎 Validación del despliegue
+
+El estado de los recursos se comprobó utilizando los comandos de Kubernetes:
+```
+kubectl get nodes
+kubectl get pods
+kubectl get services
+```
+El nodo local de Docker Desktop se encontró disponible y el Pod de estudiantesnet-api se ejecutó correctamente.
+
+### 📊 Integración con monitoreo
+
+El despliegue de Kubernetes también permitió complementar el monitoreo mediante cAdvisor.
+
+cAdvisor identificó el contenedor correspondiente a la aplicación y expuso métricas relacionadas con:
+
+* 🧠 CPU
+* 💾 Memoria
+* 🚀 Tiempo de inicio
+* ♻️ Reinicios
+* 📦 Información del contenedor
+* ☸️ Información del Pod
+
+Estas métricas fueron posteriormente recolectadas por Prometheus y visualizadas mediante Grafana.
+
+<img src="Docs/images/k8s.png"  width="1200"/>
+<img src="Docs/images/k8s_node.png"  width="1200"/>
+<img src="Docs/images/k8s_pods.png"  width="1200"/>
+<img src="Docs/images/k8s_services.png"  width="1200"/>
+
+
+
 ## 🧪 Pruebas y cobertura
+
+La calidad de la aplicación se valida automáticamente dentro del pipeline de **GitHub Actions**, ejecutando las pruebas automatizadas antes de construir y desplegar la imagen Docker.
+
+### 🧪 Pruebas automatizadas
+
+La solución cuenta con diferentes proyectos de pruebas que validan las principales capas de la aplicación:
+
+```text
+EstudiantesNet
+│
+├── 🧩 EstudiantesNet.Api
+│   └── 🧪 Tests
+│
+├── ⚙️ EstudiantesNet.Application
+│   └── 🧪 Tests
+│
+├── 🏛️ EstudiantesNet.Domain
+│   └── 🧪 Tests
+│
+├── 🔌 EstudiantesNet.Infrastructure
+│   └── 🧪 Tests
+│
+└── 📝 EstudiantesNet.Logger
+    └── 🧪 Tests
+```
+
+Las pruebas cubren diferentes componentes de la solución, permitiendo detectar errores durante el proceso de integración continua.
+
+### 🔄 Ejecución dentro del pipeline
+
+Las pruebas se ejecutan automáticamente mediante GitHub Actions:
+
+```
+📦 Restaurar dependencias
+          ↓
+🏗️ Compilar solución
+          ↓
+🧪 Ejecutar pruebas
+          ↓
+📊 Generar cobertura
+          ↓
+🔐 Análisis de seguridad
+          ↓
+🐳 Construcción de imagen
+          ↓
+🚀 Despliegue
+```
+
+De esta forma, una versión que no supere las validaciones iniciales no debería avanzar hacia las siguientes etapas del proceso de entrega.
+
+### 📊 Cobertura de código
+
+Además de ejecutar las pruebas, el pipeline genera información de cobertura utilizando herramientas de .NET y ReportGenerator.
+
+El proceso contempla:
+
+* 🧪 Ejecución de pruebas automatizadas.
+* 📊 Generación del reporte de cobertura.
+* 📄 Generación del reporte en formato HTML.
+* 📋 Publicación del reporte como artefacto de GitHub Actions.
+* ✅ Resultado de la ejecución
+
+La ejecución más reciente del pipeline finalizó correctamente:
+```
+✅ Ejecutar pruebas y cobertura
+✅ Instalar ReportGenerator
+✅ Generar reporte HTML de cobertura
+✅ Publicar reporte de cobertura XML
+✅ Publicar reporte HTML
+```
+
+El pipeline completó exitosamente todas las etapas posteriores de seguridad, construcción y despliegue.
+
+🎯 Beneficios
+
+La automatización de las pruebas permite:
+
+* Detectar errores antes del despliegue.
+* Validar automáticamente los cambios realizados.
+* Mantener trazabilidad de las ejecuciones.
+* Generar métricas de cobertura.
+* Reducir la posibilidad de introducir regresiones.
+* Integrar la calidad dentro del ciclo CI/CD.
+
+<img src="Docs/images/pruebas.png"  width="900"/>
+<img src="Docs/images/reporte_pruebas_cobertura.png"  width="2000"/>
+<img src="Docs/images/reporte_html.png"  width="900"/>
+
+
 
 ## 📁 Estructura del proyecto
 
-## 📸 Evidencias
+El repositorio se encuentra organizado separando el código fuente de la aplicación, las pruebas automatizadas, la configuración de CI/CD, los archivos de despliegue y los componentes de monitoreo.
 
-## 🎓 Reflexión DevOps
+### 🗂️ Organización general
+
+```text
+EstudiantesNet/
+│
+├── 📁 EstudiantesNet.Api/
+│   ├── Controllers/
+│   ├── Middleware/
+│   ├── DependencyInjection/
+│   ├── Dockerfile
+│   └── Program.cs
+│
+├── 📁 EstudiantesNet.Application/
+│
+├── 📁 EstudiantesNet.Domain/
+│
+├── 📁 EstudiantesNet.Infrastructure/
+│
+├── 📁 EstudiantesNet.Logger/
+│
+├── 📁 Tests/
+│   ├── 🧪 EstudiantesNet.Api.UnitTests/
+│   ├── 🧪 EstudiantesNet.Application.UnitTests/
+│   ├── 🧪 EstudiantesNet.Domain.UnitTests/
+│   ├── 🧪 EstudiantesNet.Infrastructure.UnitTests/
+│   └── 🧪 EstudiantesNet.Logger.UnitTests/
+│
+├── 📁 .github/
+│   └── 📁 workflows/
+│       └── ⚙️ ci.yml
+│
+├── 📁 Kubernetes/
+│   ├── deployment.yaml
+│   └── service.yaml
+│
+├── 📁 monitoring/
+│   ├── docker-compose.yml
+│   └── prometheus.yml
+│
+├── 📄 EstudiantesNet.sln
+└── 📄 README.md
+```
+
+### ⚙️ CI/CD
+
+La configuración de integración y despliegue continuo se encuentra en:
+```
+.github/workflows/
+└── ci.yml
+```
+Este workflow contiene las etapas automatizadas de:
+
+* 🏗️ Compilación.
+* 🧪 Pruebas.
+* 📊 Cobertura.
+* 🔐 Análisis con Snyk.
+* 🐳 Construcción de la imagen Docker.
+* 📦 Publicación en Artifact Registry.
+* 🚀 Despliegue en Cloud Run.
+* ☸️ Kubernetes
+
+Los archivos utilizados para la validación del despliegue local se encuentran en:
+```
+Kubernetes/
+├── deployment.yaml
+└── service.yaml
+```
+Estos archivos permiten definir los recursos necesarios para ejecutar la API dentro de Kubernetes.
+
+### 📊 Monitoreo
+
+La configuración del entorno de monitoreo se encuentra en:
+```
+monitoring/
+├── docker-compose.yml
+└── prometheus.yml
+```
+Estos archivos permiten levantar:
+
+* 📈 Prometheus.
+* 📊 Grafana.
+* 🖥️ cAdvisor.
+
+### 🐳 Contenerización / Dockerfile
+
+El proyecto incluye un Dockerfile utilizado por GitHub Actions para construir la imagen de la API.
+
+La imagen resultante es publicada automáticamente en Google Artifact Registry y posteriormente utilizada para realizar el despliegue en Google Cloud Run.
+
+La aplicación utiliza un `Dockerfile` ubicado en:
+```text
+EstudiantesNet.Api/Dockerfile
+```
+Este archivo define las instrucciones necesarias para construir la imagen Docker de la API.
+
+Durante el pipeline CI/CD, GitHub Actions utiliza este Dockerfile para construir la imagen, analizarla mediante Snyk y posteriormente publicarla en **Google Artifact Registry**.
+
+La imagen publicada es utilizada posteriormente para realizar el despliegue de la aplicación en Google Cloud Run.
+
+### 🔗 Repositorio
+
+El código fuente y todas las configuraciones del proyecto se encuentran disponibles en:
+
+👉 [Repositorio EstudiantesNet en GitHub](https://github.com/zuyto/EstudiantesNet)
+
+
+## 🎓 Reflexión DevOps / Reflexión sobre eficiencia operativa
+
+La implementación del pipeline CI/CD permitió integrar en un mismo flujo las actividades de desarrollo, pruebas, seguridad, construcción y despliegue de la aplicación.
+
+Antes de automatizar este proceso, cada una de estas actividades podría requerir intervención manual. Con GitHub Actions se estableció un flujo repetible que permite ejecutar las validaciones y el despliegue de manera automática.
+
+### ⚡ Impacto de la automatización
+
+La solución implementada aporta mejoras en diferentes aspectos:
+
+- 🚀 **Velocidad:** reduce el tiempo necesario para llevar una nueva versión desde el código hasta el entorno de ejecución.
+- 🔄 **Repetibilidad:** cada ejecución sigue las mismas etapas y condiciones.
+- 🧪 **Calidad:** las pruebas automatizadas permiten detectar errores antes del despliegue.
+- 🔐 **Seguridad:** Snyk incorpora controles de seguridad sobre dependencias e imágenes Docker.
+- 📦 **Trazabilidad:** GitHub Actions permite consultar el resultado y el historial de cada ejecución.
+- ☁️ **Despliegue automatizado:** Artifact Registry y Cloud Run permiten publicar y ejecutar las nuevas versiones sin intervención manual.
+- 📊 **Observabilidad:** Prometheus y Grafana permiten obtener información sobre el comportamiento de la aplicación y los recursos utilizados.
+
+### 🔐 DevSecOps
+
+La seguridad fue incorporada como parte del ciclo de desarrollo y no como una actividad posterior al despliegue.
+
+El pipeline ejecuta análisis de Snyk sobre:
+
+```text
+📦 Dependencias
+      │
+      ▼
+🔐 Snyk
+      │
+      ▼
+🐳 Imagen Docker
+      │
+      ▼
+🔐 Snyk
+      │
+      ▼
+📦 Artifact Registry
+      │
+      ▼
+☁️ Cloud Run
+```
+
+Esto permite detectar posibles vulnerabilidades antes de que la imagen sea utilizada en el entorno de ejecución.
+
+### 📊 Observabilidad y operación
+
+La incorporación de Prometheus, Grafana y cAdvisor permite complementar el proceso de entrega con información sobre el comportamiento de la aplicación.
+
+Las métricas permiten observar aspectos como:
+
+* 🧠 CPU.
+* 💾 Memoria.
+* 🌐 Solicitudes HTTP.
+* ♻️ Reinicios de contenedores.
+* 🚀 Tiempo de inicio.
+* 📦 Estado de los contenedores.
+
+Además, la configuración de alertas permite establecer mecanismos para identificar condiciones que puedan requerir atención.
+
+### 🎯 Conclusión
+
+El laboratorio permitió comprobar que DevOps no consiste únicamente en automatizar un despliegue, sino en integrar diferentes prácticas a lo largo del ciclo de vida del software.
+
+La combinación de GitHub Actions, Docker, Snyk, Artifact Registry, Cloud Run, Prometheus y Grafana permite construir un proceso más automatizado, trazable y orientado a la mejora continua.
+
+Como evolución futura, el entorno podría incorporar herramientas adicionales de análisis de código, gestión centralizada de logs, mayores controles de seguridad y estrategias de despliegue como Blue/Green o Canary, dependiendo de los requerimientos del sistema.
+
+
+## 👥 Equipo de trabajo
+
+Este proyecto fue desarrollado como un **laboratorio técnico de carácter académico y colaborativo**, como parte de la asignatura **Fundamentos de DevOps**.
+
+### 🎓 Información académica
+
+- **Asignatura:** Fundamentos de DevOps
+- **Actividad:** Laboratorio técnico – Implementación de CI/CD, Seguridad y Monitoreo
+- **Tipo de trabajo:** Colaborativo
+- **Programa:** Maestría en Arquitectura de Software
+- **Institución:** Universidad de La Sabana
+- **Docente:** Maria Fernanda Ochoa
+
+### 👨‍💻 Integrantes
+
+- **Mauro Martínez** 
+- **Oscar Mauricio Dominguez Giraldo**
+- **Andres Felipe Lara Nieto**
+
+---
+
+### 📌 Nota académica
+
+Este repositorio corresponde a un **laboratorio didáctico**, desarrollado con fines académicos para aplicar conceptos y herramientas del ecosistema DevOps.
+
+La implementación integra prácticas de:
+
+- 🔄 Integración y despliegue continuo (CI/CD)
+- 🐳 Contenerización
+- ☸️ Kubernetes
+- 🔐 Seguridad y análisis de vulnerabilidades
+- ☁️ Computación en la nube
+- 📊 Monitoreo y observabilidad
+- 🚨 Gestión de alertas
+- 🧪 Pruebas automatizadas
+
+El proyecto busca demostrar de manera práctica la integración de estas tecnologías dentro del ciclo de vida del desarrollo de software.
+
+---
+
+**© 2026 – Laboratorio académico de Fundamentos de DevOps**
