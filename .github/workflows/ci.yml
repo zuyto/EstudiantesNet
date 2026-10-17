@@ -23,11 +23,9 @@ env:
 
 jobs:
   build-test:
-
     runs-on: ubuntu-latest
 
     steps:
-
       # ========================================
       # CHECKOUT
       # ========================================
@@ -36,13 +34,16 @@ jobs:
         uses: actions/checkout@v4
 
       # ========================================
-      # .NET 8
+      # .NET 8 - BUILD Y TESTS
       # ========================================
 
       - name: Configurar .NET 8
         uses: actions/setup-dotnet@v4
         with:
           dotnet-version: '8.0.x'
+
+      - name: Mostrar versión de .NET
+        run: dotnet --info
 
       - name: Restaurar dependencias
         run: dotnet restore EstudiantesNet.sln
@@ -74,38 +75,86 @@ jobs:
           -reporttypes:"Html"
 
       - name: Publicar reporte de cobertura XML
+        if: always()
         uses: actions/upload-artifact@v4
         with:
           name: coverage-report-xml
           path: ./TestResults/**/coverage.cobertura.xml
+          if-no-files-found: warn
 
       - name: Publicar reporte HTML
+        if: always()
         uses: actions/upload-artifact@v4
         with:
           name: coverage-report-html
           path: ./CoverageReport
+          if-no-files-found: warn
+
+      # ========================================
+      # SNYK - PREPARAR ENTORNO DE ANÁLISIS
+      # La aplicación sigue compilándose en .NET 8.
+      # .NET 10 se instala después de los tests.
+      # ========================================
+
+      - name: Instalar SDK .NET 10 para Snyk
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: Diagnosticar SDK y PackageOverrides
+        shell: bash
+        run: |
+          echo "=== SDK instalados ==="
+          dotnet --list-sdks
+
+          echo "=== SDK seleccionado ==="
+          dotnet --version
+
+          echo "=== Targeting pack .NET 10 ==="
+          ls -la /usr/share/dotnet/packs/Microsoft.NETCore.App.Ref/10.0.13/data/ || true
+
+          echo "=== Verificación del archivo ==="
+          if [ -f /usr/share/dotnet/packs/Microsoft.NETCore.App.Ref/10.0.13/data/PackageOverrides.txt ]; then
+            echo "PackageOverrides.txt existe."
+          else
+            echo "No existe el archivo en la ruta 10.0.13."
+            echo "Buscando el archivo en los targeting packs instalados..."
+            find /usr/share/dotnet/packs/Microsoft.NETCore.App.Ref \
+              -path '*/data/PackageOverrides.txt' -print 2>/dev/null || true
+          fi
 
       # ========================================
       # SNYK - OPEN SOURCE
       # ========================================
 
       - name: Instalar Snyk CLI
+        shell: bash
         run: |
-          curl --compressed https://static.snyk.io/cli/latest/snyk-linux -o snyk
+          curl --fail --show-error --silent --location \
+            https://static.snyk.io/cli/latest/snyk-linux \
+            --output snyk
+
           chmod +x snyk
           sudo mv snyk /usr/local/bin/snyk
+
+      - name: Mostrar versión de Snyk
+        run: snyk --version
 
       - name: Analizar dependencias con Snyk
         env:
           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
         run: |
-          snyk test --all-projects --severity-threshold=high
+          snyk test \
+            --file=EstudiantesNet.sln \
+            --severity-threshold=high
 
       # ========================================
       # GOOGLE CLOUD
+      # Solo push a main
       # ========================================
 
       - name: Autenticar con Google Cloud
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
         id: auth
         uses: google-github-actions/auth@v2
         with:
@@ -114,6 +163,7 @@ jobs:
           token_format: access_token
 
       - name: Configurar gcloud
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
         uses: google-github-actions/setup-gcloud@v2
 
       # ========================================
@@ -121,6 +171,7 @@ jobs:
       # ========================================
 
       - name: Iniciar sesión en Artifact Registry
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
         uses: docker/login-action@v3
         with:
           registry: us-central1-docker.pkg.dev
@@ -132,11 +183,12 @@ jobs:
       # ========================================
 
       - name: Construir imagen Docker
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
         run: |
           docker build \
             --file EstudiantesNet.Api/Dockerfile \
-            --tag ${{ env.IMAGE }}:${{ github.sha }} \
-            --tag ${{ env.IMAGE }}:latest \
+            --tag "${IMAGE}:${GITHUB_SHA}" \
+            --tag "${IMAGE}:latest" \
             .
 
       # ========================================
@@ -144,10 +196,11 @@ jobs:
       # ========================================
 
       - name: Verificar ICU en imagen Docker
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
         run: |
           docker run --rm \
             --entrypoint /bin/sh \
-            ${{ env.IMAGE }}:${{ github.sha }} \
+            "${IMAGE}:${GITHUB_SHA}" \
             -c '
               echo "--- ALPINE ---"
               cat /etc/alpine-release
@@ -167,11 +220,12 @@ jobs:
       # ========================================
 
       - name: Analizar imagen Docker con Snyk
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
         env:
           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
         run: |
           snyk container test \
-            ${{ env.IMAGE }}:${{ github.sha }} \
+            "${IMAGE}:${GITHUB_SHA}" \
             --file=EstudiantesNet.Api/Dockerfile
 
       # ========================================
@@ -179,15 +233,18 @@ jobs:
       # ========================================
 
       - name: Publicar imagen en Artifact Registry
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
         run: |
-          docker push ${{ env.IMAGE }}:${{ github.sha }}
-          docker push ${{ env.IMAGE }}:latest
+          docker push "${IMAGE}:${GITHUB_SHA}"
+          docker push "${IMAGE}:latest"
 
       # ========================================
       # CLOUD RUN
+      # Solo push a main
       # ========================================
 
       - name: Desplegar en Cloud Run
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
         uses: google-github-actions/deploy-cloudrun@v2
         with:
           service: estudiantesnet-api
