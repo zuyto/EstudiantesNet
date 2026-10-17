@@ -94,6 +94,7 @@ namespace EstudiantesNet.Api.DependecyInjectionGlobal
 							.AddOtlpExporter());
 
 
+
 			return builder!;
 		}
 
