@@ -5,6 +5,7 @@
 // </copyright>
 
 using System.Diagnostics.CodeAnalysis;
+using System.Reflection;
 
 using EstudiantesNet.Api.Filters;
 using EstudiantesNet.Api.Middleware;
@@ -12,6 +13,10 @@ using EstudiantesNet.Application;
 using EstudiantesNet.Infrastructure;
 
 using Newtonsoft.Json.Serialization;
+
+using OpenTelemetry.Metrics;
+using OpenTelemetry.Resources;
+using OpenTelemetry.Trace;
 
 namespace EstudiantesNet.Api.DependecyInjectionGlobal
 {
@@ -67,6 +72,26 @@ namespace EstudiantesNet.Api.DependecyInjectionGlobal
 				options.MaxAge = TimeSpan.FromDays(365);
 			});
 			#endregion
+
+
+
+			builder.Services
+						.AddOpenTelemetry()
+						.ConfigureResource(resource => resource
+							.AddService(
+								serviceName: "estudiantesnet-api",
+								serviceVersion: Assembly.GetExecutingAssembly()
+									.GetName()
+									.Version?.ToString() ?? "1.0.0"))
+						.WithTracing(tracing => tracing
+							.AddAspNetCoreInstrumentation()
+							.AddHttpClientInstrumentation()
+							.AddOtlpExporter())
+						.WithMetrics(metrics => metrics
+							.AddAspNetCoreInstrumentation()
+							.AddHttpClientInstrumentation()
+							.AddRuntimeInstrumentation()
+							.AddOtlpExporter());
 
 
 			return builder!;
